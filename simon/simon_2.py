@@ -10,7 +10,8 @@ n = 3
 
 def f(x):
     """ Our 2-1 function with iff f(x) = f(y) then x + y = 0,s """
-    return x % 2**(n-1)
+    # return x % 2**(n-1)
+    return [5, 2, 0, 6, 5, 2, 0, 6][x]
 
 # ----- DON'T EDIT BELOW! -----
 N = 2**n
@@ -32,9 +33,12 @@ def transpose(M: list[list]) -> list[list]:
 # build Simon's black box
 Bf = transpose([_Bf_column(y, x) for y in range(N) for x in range(N)])
 
-def print_mat(M: list[list]) -> None:
+def print_mat(M: list[list], augmented=False) -> None:
     for i in range(len(M)):
-        for j in range(len(M[i])):
+        COLS = len(M[i])
+        for j in range(COLS):
+            if augmented and j ==  COLS - 1:
+                print("|", end="")
             print(M[i][j], end="")
         print()
 
@@ -77,12 +81,11 @@ def pivots(M: list[list]):
     ```
     """
     ROWS = len(M)
-    COLS = len(M[0])
 
     pivots = []
     i = 0
     j = 0
-    while i < ROWS and j < COLS:
+    while i < ROWS and j < len(M[i]):
         if M[i][j] == 1:
             yield j
             i += 1
@@ -93,8 +96,15 @@ def rank(M: list[list]) -> int:
 
 
 if __name__ == "__main__":
-    print(rref_mod2([[1,0],[1, 0]]))
+    print("Bf:")
     print_mat(Bf)
+    print()
+
+    print("x -> f(X)")
+    for x in range(N):
+        print(x, "->", f(x))
+    print()
+
     Uf = UnitaryGate(Bf, label="Bf")
 
     x = QuantumRegister(n, "x")
@@ -116,7 +126,7 @@ if __name__ == "__main__":
     # post-processing:
     count = 0  # iteration count
     solutions = set()  # store solution set {y | y*s = 0}
-    Y = [[0 for _ in range(n + 1)]]  # augmented solution matrix [solutions|0] in RREF
+    Y = []  # augmented solution matrix [solutions|0] in RREF
     while rank(Y) < n - 1:
         # run until we get a new solution, y
         y = next(iter(backend.run(qc, shots=1).result().get_counts()))
@@ -129,7 +139,10 @@ if __name__ == "__main__":
         # solve for s with what we have so far
         rref_mod2(Y)
         Y = [row for row in Y if not all([ele == 0 for ele in row])]  # remove all 0 rows
-    
+    print()
+
     # print solution
-    print("Augmented solution matirx:", Y)
+    print("Augmented solution matirx (RREF):")
+    print_mat(Y, augmented=True)
+    print()
     print("Iterations: ", count)
