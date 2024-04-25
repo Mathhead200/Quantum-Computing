@@ -139,10 +139,32 @@ if __name__ == "__main__":
         # solve for s with what we have so far
         rref_mod2(Y)
         Y = [row for row in Y if not all([ele == 0 for ele in row])]  # remove all 0 rows
+    print("Iterations: ", count)
     print()
 
     # print solution
     print("Augmented solution matirx (RREF):")
     print_mat(Y, augmented=True)
-    print()
-    print("Iterations: ", count)
+    free_vars = set(range(n)) - set(pivots(Y))
+
+    if len(free_vars) == 1:
+        k = (n - 1) - next(iter(free_vars))
+        print("Free variable: ", end="")
+        for i in range(len(free_vars)):
+            print("s[", k, "] ", sep="", end="")
+        print()
+        print()
+        print("Assume s != 0")
+
+        # append row with s[k] = 1
+        row = [1 if i == k else 0 for i in range(n)] + [1]
+        print("Appending new row: ", end="")
+        print_mat([row], augmented=True)
+        Y.append(row)
+        rref_mod2(Y)
+        print("New augmented solution matrix (RREF): ")
+        print_mat(Y, augmented=True)
+
+        # compute s
+        s = "".join([str(Y[i][n]) for i in range(len(Y))])
+        print("s =", s)
